@@ -1,0 +1,4 @@
+git show HEAD
+git checkout HEAD filename
+git reset HEAD filename   //change staging area
+git reset order           //change to th stage
