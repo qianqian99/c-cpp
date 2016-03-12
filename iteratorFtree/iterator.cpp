@@ -1,0 +1,143 @@
+#include <iostream>
+#include <stack>
+#include <utility>
+#define END '#'
+template <typename Type>
+class Node{
+    public:
+        Node *left;
+        Type data;
+        Node *right;
+        Node(Node *l, Type data, Node *r) :left(l), data(data), right(r){}
+        ~Node(){}
+};
+template <typename Type>
+class Tree{
+    private:
+        Node<Type> *root;    
+    private:
+        Node<Type> *create(const Type *&msg);
+        void print_prev(Node<Type> *) const;
+    public:
+        Tree(const Type *);
+        void prev_print() const;
+        Node<Type> *get_root() const {return root;}
+        Tree()=default;
+        ~Tree(){}
+};
+template <typename T>
+void Tree<T>::print_prev(Node<T> *root) const {
+    if (root != nullptr){
+        std::cout << root->data << " ";
+        print_prev(root->left);
+        print_prev(root->right);
+    }
+}
+template <typename T>
+void Tree<T>::prev_print() const{
+    if (root == nullptr){
+        return;
+    }
+    else{
+        print_prev(root);
+    }
+}
+template <typename T>
+Node<T> *Tree<T>::create(const T *&msg){
+    Node<T> *new_node = nullptr;
+    if (*msg != END){
+        T tmp = *msg;
+        Node<T> *l = create(++msg);
+        Node<T> *r = create(++msg);
+        new_node = new Node<T>(l, tmp, r);
+    }
+    return new_node;
+}
+template <typename Type>
+Tree<Type>::Tree(const Type *msg):root(nullptr){
+    if (msg != nullptr){
+        root = create(msg);
+    }
+}
+//////////////////////////////////////////////////////////////////
+
+template <typename T>
+class TreeItertor{
+    protected:
+        Tree<T> &tree;
+        Node<T> *ptr;
+    public:
+        TreeItertor(Tree<T> &t) : tree(t), ptr(nullptr){}
+        ~TreeItertor(){}
+        bool is_over(){ return ptr == nullptr;}
+        virtual void get_start() = 0; 
+        virtual T operator*() const= 0;
+        virtual void operator++() = 0;
+};
+
+template<typename T>
+class PrevIterator : public TreeItertor<T>{
+    private:
+        std::stack<Node<T> *> st;
+        using TreeItertor<T>::ptr;
+        using TreeItertor<T>::tree;
+    public:
+        PrevIterator(Tree<T> &t) : TreeItertor<T>(t){}
+        ~PrevIterator(){}
+        virtual T operator*() const override;
+        virtual void operator++() override;
+        virtual void get_start()  override;
+};
+template <typename T>
+T PrevIterator<T>::operator*() const {
+    return ptr->data ;
+}
+template <typename T>
+void PrevIterator<T>::get_start(){
+    TreeItertor<T>::ptr = TreeItertor<T>::tree.get_root();
+    if (ptr != nullptr){
+        st.push(ptr);
+    }
+    operator++();
+}
+template <typename T>
+void PrevIterator<T>::operator++(){
+    if (st.empty()){
+        ptr = nullptr;
+        return;
+    }
+    else{
+        ptr = st.top(); st.pop();
+
+        if (ptr->right != nullptr){
+            st.push(ptr->right);
+        }
+        if (ptr->left != nullptr){
+            st.push(ptr->left);
+        }
+    }
+}
+void Print(TreeItertor<char> & it){
+    it.get_start();
+    do{
+        std::cout << *it << " ";
+        ++it;
+    }while (!it.is_over());
+}
+
+
+int main(){
+    Tree<char> tree("ABC##DE##F##G#H##");
+    //tree.prev_print();
+    PrevIterator<char> prev(tree);
+    Print(prev);
+    return 0;
+}
+
+
+
+
+
+
+
+
