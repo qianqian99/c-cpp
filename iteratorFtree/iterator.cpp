@@ -120,7 +120,7 @@ void PrevIterator<T>::operator++(){
 
 template<typename T>
 class MidIterator : public TreeItertor<T>{
-    private:
+    protected:
         std::stack<std::pair<Node<T> *, int>> st;
         using TreeItertor<T>::ptr;
         using TreeItertor<T>::tree;
@@ -174,7 +174,7 @@ void Print(TreeItertor<char> & it){
 
 template<typename T>
 class LastIterator : public TreeItertor<T>{
-    private:
+    protected:
         std::stack<std::pair<Node<T> *, int>> st;
         using TreeItertor<T>::ptr;
         using TreeItertor<T>::tree;
@@ -216,6 +216,87 @@ class LastIterator : public TreeItertor<T>{
         }
 };
 
+///////////////////////////////////////////////////////////////////
+//
+//
+//
+//
+
+template<typename T>
+class OtherMidIterator : public MidIterator<T>{
+    private:
+        std::stack<Node<T> *> st;
+        using TreeItertor<T>::ptr;
+        using TreeItertor<T>::tree;
+        Node<T> *p;
+    public:
+        OtherMidIterator(Tree<T> &t) : MidIterator<T>(t){}
+        ~OtherMidIterator(){}
+        virtual void operator++() override{
+            while (p != nullptr){
+                st.push(p);
+                p = p->left;
+            }
+            if (st.empty()){
+                ptr = nullptr;
+                return;
+            }
+            else {
+                p = st.top(); st.pop();
+                ptr = p;
+                p = p->right;
+            }
+        }
+        virtual void get_start()  override{
+            p = tree.get_root();
+            operator++();
+        }
+
+};
+template<typename T>
+class OtherLastIterator : public LastIterator<T>{
+    private:
+        std::stack<Node<T> *> st;
+        using TreeItertor<T>::ptr;
+        using TreeItertor<T>::tree;
+        Node<T> *p;
+    public:
+        OtherLastIterator(Tree<T> &t) : LastIterator<T>(t){}
+        ~OtherLastIterator(){}
+        virtual void operator++() override{
+            while (true){
+                while (p != nullptr)    {
+                    st.push(p);
+                    p = p->left;
+                }
+                if (st.empty()) {
+                    ptr=nullptr;
+                    return;
+                }
+                p = st.top();
+                if (p->right == nullptr || p->right == ptr){
+                    st.pop();
+                    ptr = p;
+                    p = nullptr;
+                    return;
+                }
+                else {
+                    p = p->right;
+                }
+            }
+
+        }
+        virtual void get_start()  override{
+            p = tree.get_root();
+            operator++();
+        }
+
+};
+
+
+
+
+
 
 int main(){
     Tree<char> tree("ABC##DE##F##G#H##");
@@ -223,11 +304,17 @@ int main(){
     PrevIterator<char> prev(tree);
     MidIterator<char> mid(tree);
     LastIterator<char> last(tree);
+    OtherMidIterator<char> omid(tree);
+    OtherLastIterator<char> olast(tree);
     Print(prev);
     std::cout << "\n";
     Print(mid);
     std::cout << "\n";
+    Print(omid);
+    std::cout << "\n";
     Print(last);
+    std::cout << "\n";
+    Print(olast);
     return 0;
 }
 
