@@ -117,6 +117,48 @@ void PrevIterator<T>::operator++(){
         }
     }
 }
+
+template<typename T>
+class MidIterator : public TreeItertor<T>{
+    private:
+        std::stack<std::pair<Node<T> *, int>> st;
+        using TreeItertor<T>::ptr;
+        using TreeItertor<T>::tree;
+    public:
+        MidIterator(Tree<T> &t) : TreeItertor<T>(t){}
+        ~MidIterator(){}
+        virtual T operator*() const override{
+            return ptr->data;
+        }
+        virtual void operator++() override{
+            while (!st.empty()){
+                auto i = st.top(); st.pop();
+                if (i.second == 1){
+                    i.second++;
+                    st.push(i);
+                    if (i.first->left != nullptr){
+                        st.push({i.first->left, 1});
+                    }
+                }
+                else if (i.second == 2){
+                    ptr = i.first;
+                    if (i.first->right != nullptr){
+                        st.push({i.first->right, 1});
+                    }
+                    return;
+                }
+            }
+            ptr = nullptr;
+        }
+        virtual void get_start()  override{
+            ptr = tree.get_root();
+            if (ptr != nullptr){
+                st.push({ptr, 1});
+            }
+            operator++();
+        }
+};
+
 void Print(TreeItertor<char> & it){
     it.get_start();
     do{
@@ -130,7 +172,10 @@ int main(){
     Tree<char> tree("ABC##DE##F##G#H##");
     //tree.prev_print();
     PrevIterator<char> prev(tree);
+    MidIterator<char> mid(tree);
     Print(prev);
+    std::cout << "\n";
+    Print(mid);
     return 0;
 }
 
