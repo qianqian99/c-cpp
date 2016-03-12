@@ -85,14 +85,69 @@ void mid_thread_trav(Node *root){
         }
     }
 }
+////////////////////////////////////////////////////////////////
+//
+Node *prev = NULL;
+void prev_thread(Node *root){
+    if (root != NULL){
+        if (root->left->child == NULL){
+            root->left->child = prev;
+            root->left->tag = LINK;
+        }
+        if (prev != NULL && prev->right->child == NULL){
+            prev->right->child = root;
+            prev->right->tag = LINK;
+        }
+        prev = root;
+        if (root->left->tag == CHILD)
+        prev_thread(root->left->child);
+        if (root->right->tag == CHILD)
+        prev_thread(root->right->child);
+    }
+}
+
+void prev_thread_trav(Node *root){
+    while (root != NULL){
+        if (root->left->tag == CHILD){
+            printf("%c ", root->data);
+            root = root->left->child;
+        }
+        else{
+            printf("%c ", root->data);
+            root = root->right->child;
+        }
+    }
+}
+//////////////////////////////////////////////////////////
+
+Node *last = NULL;
+void last_thread(Node *root){
+    if (root != NULL){
+        last_thread(root->left->child);
+        last_thread(root->right->child);
+
+        if (root->left->child == NULL){
+            root->left->child = last;
+            root->left->tag = LINK;
+        }
+        if (last != NULL && last->right->child == NULL){
+            last->right->child = p;
+            last->right->tag = LINK;
+        }
+        last = root;
+    }
+}
+
 int main(){
     ThreadTree root;
     const char *str = "ABC###DE##F##";
     root = create_thread_tree(&str);
-    mid_trav(root);
-    mid_thread(root);
+    //mid_trav(root);
+    //mid_thread(root);
+    prev_thread(root);
     printf("\n");
-    mid_thread_trav(root);
+   // mid_thread_trav(root);
+    prev_thread_trav(root);
     return 0;
 }
 
