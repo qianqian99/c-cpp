@@ -50,6 +50,7 @@ void mid_trav(Node *root){
         mid_trav(root->right->child);
     }
 }
+
 void mid_thread(Node *root){
     if (root != NULL){
         mid_thread(root->left->child);
@@ -66,11 +67,44 @@ void mid_thread(Node *root){
         mid_thread(root->right->child);
     }
 }
+
+
+void mid_thread_noglobal(Node *root, Node **pprev){
+    if (root != NULL){
+        mid_thread_noglobal(root->left->child, pprev);
+
+        if (root->left->child == NULL){
+            root->left->child = *pprev;
+            root->left->tag = LINK;
+        }
+        if (*pprev != NULL && (*pprev)->right->child == NULL){
+            (*pprev)->right->child = root;
+            (*pprev)->right->tag = LINK;
+        }
+        *pprev = root;
+
+        mid_thread_noglobal(root->right->child, pprev);
+    }
+}
 Node *find_left(Node *root){
     while (root != NULL && root->left->tag == CHILD){
         root = root->left->child;
     }
     return root;
+}
+void MidThread(Node *root){
+    if (root != NULL){
+        void *func[] = {mid_thread, mid_thread_noglobal};
+        int num = 0;
+        printf("\nInput 1 or 0 to call func\n");
+        scanf("%d", &num);
+        Node *tmp = NULL;
+        switch (num){
+            case 0:((void (*)(Node *))func[0])(root); ptr->right->tag = LINK; ptr=NULL;break;
+            case 1:((void (*)(Node *, Node **))func[1])(root, &tmp); tmp->right->tag=LINK;break;
+            default:printf("error\n");break;
+        }
+    }
 }
 void mid_thread_trav(Node *root){
     root = find_left(root);
@@ -85,6 +119,37 @@ void mid_thread_trav(Node *root){
         }
     }
 }
+
+////////////////////////////////////////////
+
+Node *last_func(Node *);
+Node *prev_func(Node *);
+void rev_mid_thread_trav(Node *);
+void rev_mid_thread_trav(Node *root){
+    if (root != NULL){
+        root = last_func(root);
+        while (root != NULL){
+            printf("%c ", root->data);
+            root = prev_func(root);
+        }
+    }
+}
+Node *last_func(Node *root){
+    while (root != NULL && root->right->tag != LINK){
+        root = root->right->child;
+    }
+    return root;
+}
+Node *prev_func(Node *p){
+    if (p->left->tag = LINK){
+        p = p->left->child;
+    }
+    else {
+        p = last_func(p->left->child);
+    }
+    return p;
+}
+
 ////////////////////////////////////////////////////////////////
 //
 Node *prev = NULL;
@@ -131,7 +196,7 @@ void last_thread(Node *root){
             root->left->tag = LINK;
         }
         if (last != NULL && last->right->child == NULL){
-            last->right->child = p;
+            last->right->child = root;
             last->right->tag = LINK;
         }
         last = root;
@@ -142,12 +207,13 @@ int main(){
     ThreadTree root;
     const char *str = "ABC###DE##F##";
     root = create_thread_tree(&str);
-    //mid_trav(root);
-    //mid_thread(root);
-    prev_thread(root);
+    mid_trav(root);
+    Node *prev = NULL;
+    MidThread(root);
     printf("\n");
-   // mid_thread_trav(root);
-    prev_thread_trav(root);
+    mid_thread_trav(root);
+    printf("\n");
+    rev_mid_thread_trav(root);
     return 0;
 }
 
