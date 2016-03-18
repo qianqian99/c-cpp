@@ -141,7 +141,7 @@ Node *last_func(Node *root){
     return root;
 }
 Node *prev_func(Node *p){
-    if (p->left->tag = LINK){
+    if (p->left->tag == LINK){
         p = p->left->child;
     }
     else {
@@ -211,9 +211,9 @@ int main(){
     Node *prev = NULL;
     MidThread(root);
     printf("\n");
-    mid_thread_trav(root);
-    printf("\n");
     rev_mid_thread_trav(root);
+    printf("\n");
+    mid_thread_trav(root);
     return 0;
 }
 
