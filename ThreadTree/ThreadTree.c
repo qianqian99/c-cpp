@@ -202,18 +202,94 @@ void last_thread(Node *root){
         last = root;
     }
 }
+Node *find_value(Node *root, ElemType val){
+    if (root == NULL || val == root->data) return root;
+    else {
+        Node *tmp = NULL;
+        if (root->left->tag != LINK)
+        tmp = find_value(root->left->child, val);
+        if (tmp != NULL || root->right->tag == LINK) return tmp;
+        else 
+        return find_value(root->right->child, val);
+    }
+}
+Node *parent(Node *cur, Node *root){
+    if (root == NULL || cur == NULL)
+        return NULL;
+    if ((root->left->child == cur && root->left->tag == CHILD) 
+        || (root->right->child == cur && root->right->tag == CHILD))
+        return root;
+    else {
+        Node *tmp = NULL;
+        if (root->left->tag != LINK)
+        tmp = parent(cur, root->left->child);
+        if (tmp != NULL || root->right->tag == LINK) return tmp;
+        else return parent(cur, root->right->child);
+    }
+}
+Node *first(Node *root){
+    while (root->left->tag != LINK)   
+        root = root->left->child;
+    if (root->right->tag == LINK)     return root;
+    else                              first(root->right->child);
+}
+Node *next(Node *p, Node*root) {
+    if (p->right->tag == LINK) {
+        return p->right->child;
+    }
+    else {
+        Node *pa = NULL;
+        while (1) {
+            pa = parent(p, root);
+            if (pa->right->child != p || pa == root) break;
+            printf("%c ", pa->data);
+            p = pa;
+        }
+        if (pa != root){
+            if (pa->right->tag == CHILD) {
+                return first(pa->right->child);
+            }
+            else {
+                printf("%c ", pa->data);
+                return pa->right->child;
+            }
+        }
+        else {
+            if (pa->right->child == p){
+                return root;
+            }
+            else {
+                return first(pa->right->child);
+            }
+        }
+
+    }
+}
+void last_thread_trav(Node *root){
+    Node *p = first(root);
+    for (; p!=root; p=next(p, root)){
+        printf("%c ", p->data);
+    }
+    printf("%c ", p->data);
+}
+
+void last_trav(Node *root){
+    if (root != NULL){
+        last_trav(root->left->child);
+        last_trav(root->right->child);
+        printf("%c ", root->data);
+    }
+}
 
 int main(){
     ThreadTree root;
-    const char *str = "ABC###DE##F##";
+    const char *str = "ABDHM###I##EG###CFK###GL###";
+    //const char *str = "ABC###DE##F##";
     root = create_thread_tree(&str);
-    mid_trav(root);
-    Node *prev = NULL;
-    MidThread(root);
+    last_trav(root);
+    last_thread(root);
     printf("\n");
-    rev_mid_thread_trav(root);
-    printf("\n");
-    mid_thread_trav(root);
+    last_thread_trav(root); 
     return 0;
 }
 
