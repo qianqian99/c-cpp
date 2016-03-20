@@ -1,10 +1,3 @@
-/*************************************************************************
- > File Name: sortTree.c
- > What I should do is fighting !!! 
- > hgg 
- > Created Time: 2016年03月19日 星期六 22时54分37秒
- ************************************************************************/
-
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
