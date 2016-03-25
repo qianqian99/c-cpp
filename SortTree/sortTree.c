@@ -130,70 +130,74 @@ void mid_trav2(Tree tree){
         p = next(p);
     }
 }
+void remove_elem(Node **root, ElemType val){
+    if (*root == NULL) return;
+    Node *del = find_value(*root, val);
+    if (NULL == del) return;
+    if (NULL != del->left && NULL != del->right){
+        Node *tmp = del;
+        del = next(del);
+        tmp->data = del->data;
+    }
+    if (del != NULL && del->parent == NULL){
+        if (del->left != NULL){
+            Node *tmp = *root;
+            *root = tmp->left;
+            (*root)->parent = NULL;
+            free(tmp);
+            return;
+        }
+        else if (del->right != NULL){
+            Node *tmp = *root;
+            *root = tmp->right;
+            (*root)->parent = NULL;
+            free(tmp);
+            return;
+        }
+        else{
+            free(del);
+            *root = NULL;       
+            return;
+        }
+    }
 
-////////////////////////////////////////
-//void remove_leaf(Node *pa, Node *p){
-//    if (pa->left == p) pa->left = NULL;
-//    else pa->right = NULL;
-//    free(p);
-//}
-//void remove_one(Node *pa, Node *p) {
-//    if (pa->left == p) {
-//        if (p->left != NULL) {
-//            pa->left = p->left;
-//            p->left->parent = pa;
-//            free(p);
-//        }
-//        else if (p->right != NULL) {
-//            pa->left = p->right;
-//            p->right->parent = pa;
-//            free(p);
-//        }
-//        else {
-//            pa->left = NULL;
-//        }
-//    }
-//    else {
-//        if (p->left != NULL){
-//            pa->right = p->left;
-//            p->left->parent = pa;
-//            free(p);
-//        }
-//        else if (p->right != NULL){
-//            p->right = p->right;
-//            p->right->parent = pa;
-//            free(p);
-//        }
-//        else {
-//            pa->right = NULL;
-//        }
-//    }
-//}
-//Node *next(Node *p){
-//    if (p == NULL) return p;
-//    if (p->right != NULL) {
-//        p = p->right;
-//        while (p->left != NULL){
-//            p = p->left;
-//        }
-//        return p;
-//    }
-//    else {
-//        Node *pa = p->parent;
-//        while (pa != NULL && pa->left != p) {
-//            p = pa;
-//            pa = pa->parent;
-//        }
-//        return pa;
-//    }
-//
-//}
-//single branch remove root
+
+    if (NULL == del->left){
+        Node *parent = del->parent;
+        if (parent->left == del) {
+            parent->left = del->right;
+            if (parent->left != NULL) parent->left->parent = parent;
+        }
+        else{ 
+            parent->right = del->right;
+            if (parent->right != NULL) parent->right->parent = parent;
+        }
+        free(del);
+    }
+    else {
+        Node *parent = del->parent;
+        if (parent->left == del) {
+            parent->left = del->left;
+            if (parent->left != NULL) parent->left->parent = parent;
+        }
+        else { 
+            parent->right = del->left;
+            if (parent->right != NULL) parent->right->parent = parent;
+        }
+        free(del);
+    }
+}
 int main(){
     Tree t;
-    ElemType arr[] = {1,2,3,4,100, 99, 88, 36, 18, 288};
+    ElemType arr[] = {12, 9, 33, 22, 17, 66, 8, 10, 11, 2};
     t = create(arr, sizeof(arr)/sizeof(arr[0]));
-    mid_trav2(t);
+    while (true){
+        mid_trav2(t);
+        printf("\n");
+        ElemType x;
+        scanf("%d", &x);
+        remove_elem(&t, x);    
+    }
     destory(t);
     return 0;
 }
