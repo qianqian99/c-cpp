@@ -74,6 +74,7 @@ string string::operator + (const string &str) const {
   return tmp;
 }
 string &string::operator = (const string &str) {
+  if (str.mystr == mystr) return *this;
   delete mystr;
   mystr = new char[strlen(str.mystr)+1];
   strcpy(mystr, str.mystr);
