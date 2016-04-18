@@ -96,18 +96,115 @@ void get_str(const char *s, int **l, int row, int col) {
     }
   }
 }
+struct Point{
+  int x;
+  int y;
+};
+void len_row(int **l, struct Point *x, struct Point *y, int *plen, int i, int row, int col) {
+  int j = 1;
+  struct Point tmpX;
+  struct Point tmpY;
+  int Maxlen = 0;
+  int len = 0;
+  while (i<=row && j<=col) {
+    if (l[i][j] == 3){
+      len++;
+    }
+    else {
+      if (len > Maxlen) {
+        Maxlen = len;
+        tmpY.x = i-1;
+        tmpY.y = j-1;
+        tmpX.x = i-len;
+        tmpX.y = j-len;
+      }
+      len = 0;
+    }
+    ++i; ++j;
+  }
+  if (len != 0) {
+    if (len > Maxlen) {
+      Maxlen = len;
+      tmpY.x = i-1;
+      tmpY.y = j-1;
+      tmpX.x = i-len;
+      tmpX.y = j-len;
+    }
+  }
+  if (Maxlen > *plen) {
+    *plen = Maxlen;
+    *x = tmpX;
+    *y = tmpY;
+  }
+}
+
+void len_col(int **l, struct Point *x, struct Point *y, int *plen, int j, int row, int col) {
+  int i = 1;
+  struct Point tmpX;
+  struct Point tmpY;
+  int Maxlen = 0;
+  int len = 0;
+  while (i<=row && j<=col) {
+    if (l[i][j] == 3){
+      len++;
+    }
+    else {
+      if (len > Maxlen) {
+        Maxlen = len;
+        tmpY.x = i-1;
+        tmpY.y = j-1;
+        tmpX.x = i-len;
+        tmpX.y = j-len;
+      }
+      len = 0;
+    }
+    ++i; ++j;
+  }
+  if (len != 0) {
+    if (len > Maxlen) {
+      Maxlen = len;
+      tmpY.x = i-1;
+      tmpY.y = j-1;
+      tmpX.x = i-len;
+      tmpX.y = j-len;
+    }
+  }
+  if (Maxlen > *plen) {
+    *plen = Maxlen;
+    *x = tmpX;
+    *y = tmpY;
+  }
+}
+
+void get_seq_str(int **l, int row, int col) {
+  struct Point x = {0,0};
+  struct Point y = {0,0};
+  int len = 0;
+  for (int i=1; i<=row; ++i) {
+    len_row(l, &x, &y, &len, i, row, col);
+  }
+  for (int j=2; j<=col; ++j) {
+    len_col(l, &x, &y, &len, j, row, col);
+  }
+  printf("len is %d, start is (%d, %d), end is (%d, %d)\n", len, x.x, x.y, y.x, y.y);
+}
 int main (){
-  char *s = "ABCBDAB";
-  char *r = "BDCABA";
+  //char *s = "ABCBDAB";
+  //char *r = "BDCABA";
+  char *s = "ABCABC";
+  char *r = "DABCABCD";
+  int slen = 6;
+  int rlen = 8;
   //printf("len is : %d\n", get_comStr_len(s, r, 7, 6));
   int **c = get_array(strlen(s)+1, strlen(r)+1);
   int **l = get_array(strlen(s)+1, strlen(r)+1);
   //printf("len is %d\n", get_comStr(s, r, 7, 6, c, l));
-  get_comStr_2(s, r, 7,6, c, l);
-  show_array(c, 7+1, 6+1);
-  show_array(l, 7+1, 6+1);
-  get_str(s, l, 7, 6);
-  ret_array(c, 7+1);
-  ret_array(l, 7+1);
+  get_comStr_2(s, r, slen,rlen, c, l);
+  //show_array(c, 7+1, 6+1);
+  show_array(l, slen+1, rlen+1);
+  //get_str(s, l, 7, 6);
+  get_seq_str(l, slen, rlen);
+  ret_array(c, slen+1);
+  ret_array(l, slen+1);
   //char *res = get_com_str(s, r);
 }
