@@ -21,7 +21,7 @@ class Node
       {
           memset(data, 0, sizeof(T)*(N+1));
       }
-      virtual bool insert(const T &)=0;
+      virtual Node *insert(const T &)=0;
       virtual int min_index() const=0;
       virtual Type get_type() const = 0; 
       virtual T &operator[](int pos)=0;
@@ -30,7 +30,7 @@ class Node
       virtual int get_cur_size() const=0;
       virtual Node *_prev() =0;
       virtual Node *_next() =0;
-      virtual T insert(int pos, const T&key) =0;
+      virtual Node *insert(int pos, const T&key) =0;
       virtual Node<T, N> *splice()=0;
 };
 template <typename T, int N>
@@ -68,17 +68,17 @@ class Leaf : public Node<T, N>
         }
         T &operator[](int pos) {return Node<T, N>::data[pos];}
         const T &operator[] (int pos) const{return Node<T, N>::data[pos];}
-        bool insert(const T &val);
+        Node<T, N> *insert(const T &val);
         virtual Type get_node_type() const {return Node<T, N>::node_type;}
         Node<T, N> *_next(int i) {return ptr[i];}
         int get_cur_size() const{return Node<T, N>::num;}
         Node<T, N> *_prev(){return prev;}
         Node<T, N> *_next(){return next;}
-        T insert(int pos, const T&key);
+        Node<T, N> *insert(int pos, const T&key);
         void move_one_elem(int pos)
         {
             int i = Node<T, N>::num-1;
-            while (i >= pos)
+            while (i > pos)
             {
                 Node<T, N>::data[i+1] = Node<T, N>::data[i];
                 Node<T, N>::ptr[i+1] = Node<T, N>::ptr[i];
@@ -108,9 +108,11 @@ class Brch : public Node<T, N>
 {
     private:
         Node<T, N> *sub[N+1];
+        Node<T, N> *new_leaf;
     public:
         const int Max;
-        Brch(Type type=BRCH, Node<T, N> *pa=NULL, int num=0):Max(N-1),Node<T, N>(type, num, pa) 
+        Brch(Type type=BRCH, Node<T, N> *pa=NULL, int num=0)
+            :Max(N-1),Node<T, N>(type, num, pa), new_leaf(NULL)
         {
             memset(sub, 0, sizeof(void *)*(N+1));
         }
@@ -125,10 +127,38 @@ class Brch : public Node<T, N>
         bool insert(const T&key);
         T insert(int pos, const T&key);
         Node<T, N> *splice();
+        void set_new_leaf(Node<T, N> *right) {new_leaf = right;}
+        void move(Node<T, N> *);
 };
 template <typename T, int N>
+void Brch<T, N>::move(Node<T, N> *p)
+{
+    /*移动元素的个数是n上去整-1*/
+    int leave = (Node<T, N>::Max+1)/2;
+    int i = leave + 1;
+    int j = 0;
+    while (i <= Node<T, N>::num)
+    {
+        p->data[j] = Node<T, N>::data[i];
+        p->sub[j]  = Node<T, N>::sub[i];
+    }
+    p->sub[0] = Node<T, N>::sub[leave];
+    p->num = leave-1;
+    Node<T, N>::num = Node<T, N>::Max-leave;
+}
+template <typename T, int N>
 T Brch<T, N>::insert(int pos, const T&key)
-
+{
+    int i = Node<T, N>::num;
+    while (i > pos)
+    {
+        Node<T, N>::data[i+1] = Node<T, N>::data[i];
+        Node<T, N>::sub[i+1] = Node<T, N>::sub[i];
+    }
+    Node<T, N>::num++;
+    Node<T, N>::sub[pos+1] = new_leaf;
+    return Node<T, N>::data[pos+1] = key;
+}
 template <typename T, int N>
 bool Brch<T, N>::insert(const T&key)
 {
@@ -137,9 +167,31 @@ bool Brch<T, N>::insert(const T&key)
     insert(i, key);
     if (Node<T, N>::num > Node<T, N>::Max)
     {
-        //splice;
+        splice();
     }
     return true;
+}
+template <typename T, int N>
+Node<T, N> *Brch<T, N>::splice()
+{
+    Node<T, N> *new_node = new Brch<T, N>;
+    move(new_node);
+    if (Node<T, N>::parent == NULL)
+    {
+        Node<T, N> *new_root = new Brch<T, N>;
+        new_root->set_new_leaf(new_node);
+        new_node->parent = new_root;
+        Node<T, N>::parent = new_root;
+        new_root->insert(1, new_node->data[0]);
+        return new_root;
+    }
+    else
+    {
+        new_node->parent = Node<T, N>::parent;
+        Node<T, N>::parent->set_new_leaf(new_node);
+        Node<T, N>::parent->insert(Node<T, N>::data[Node<T, N>::Max/2]);
+        return NULL;
+    }
 }
 template <typename T, int N>
 Node<T, N> *Leaf<T, N>::splice()
@@ -154,6 +206,7 @@ Node<T, N> *Leaf<T, N>::splice()
     if (Node<T, N>::parent == NULL)
     {
         Node<T, N> *new_root = new Brch<T, N>;
+        new_root->set_new_leaf(new_node);
         new_node->parent = new_root;
         Node<T, N>::parent = new_root;
         new_root->insert(1, new_node->data[0]);
@@ -162,16 +215,17 @@ Node<T, N> *Leaf<T, N>::splice()
     else
     {
         new_node->parent = Node<T, N>::parent;
-        Node<T, N>::parent->insert(key);
+        Node<T, N>::parent->set_new_leaf(new_node);
+        Node<T, N>::parent->insert(new_node->data[0]);
         return NULL;
     }
 }
 template <typename T, int N>
-T Leaf<T, N>::insert(int pos, const T&key)
+Node<T, N> *Leaf<T, N>::insert(int pos, const T&key)
 {
     move_one_elem(pos);
     Node<T, N>::num++;
-    return Node<T, N>::data[pos] = key;
+    return Node<T, N>::data[pos+1] = key;
 }
 template <typename T, int N>
 class BTree
@@ -189,13 +243,22 @@ template <typename T, int N>
 bool BTree<T, N>::insert(const T &key)
 {
     Result<T, N> res = findFromRoot(key);
-    if (res.get_tag() || res.get_pcur() == NULL) return false;
+    if (res.get_tag()) return false;
+    if (res.get_pcur() == NULL) 
+    {
+        proot = new Leaf<T, N>;
+        proot[0] = key;
+        proot->num++;
+        return true;
+    }
     Node<T, N> *p = res.get_pcur();
     p->insert(res.get_pos(), key);
-    if (p->get_cur_size() > Leaf<T, N>::Max)
+    if (p->get_cur_size() > p->Max)
     {
-        //splice
+        Node<T, N> *root = p->splice();
+        if (root != NULL) proot = root;
     }
+    return true;
 }
 template <typename T, int N>
 Result<T, N> BTree<T, N>::findFromList(const T&key)
@@ -240,6 +303,9 @@ Result<T, N> BTree<T, N>::findFromList(const T&key)
     template <typename T, int N>
 Result<T, N> BTree<T, N>::findFromRoot(const T&key)
 {
+    /*is a empty tree*/
+    if (proot == NULL) return Result<T, N>();
+    /*is not a empty tree*/
     Node<T, N> *p = proot;
     while (p->get_type() != LEAF)
     {
@@ -255,25 +321,22 @@ Result<T, N> BTree<T, N>::findFromRoot(const T&key)
      * 找到       set loc set tag
      * 没有找到   set loc //special occasion
      * */
-    if (p != NULL)
+    res.set_pcur(p);
+    res.set_pos(i);
+    if (i<p->min_index() && p->_prev() != NULL)
     {
+        p = p->_prev();
         res.set_pcur(p);
-        res.set_pos(i);
-        if (i<p->min_index() && p->_prev() != NULL)
-        {
-            p = p->_prev();
-            res.set_pcur(p);
-            res.set_pos(p->get_cur_size()-1);
-        }
-        else if (i>=p->min_index() && (*p)[i] == key) 
-        {
-            res.set_tag(true);
-        }
+        res.set_pos(p->get_cur_size()-1);
+    }
+    else if (i>=p->min_index() && (*p)[i] == key) 
+    {
+        res.set_tag(true);
     }
     return res;
 }
 template <typename T, int N>
-bool Leaf<T, N>::insert(const T &val)
+Node<T, N> *Leaf<T, N>::insert(const T &val)
 {
 
 }
@@ -284,6 +347,6 @@ int main()
     BTree<int, 5> *pBtree = new BTree<int, 5>();
     pBtree->findFromRoot(3);
     for (int i=0; i<4; ++i)
-        //pnode->insert(array[i]);
+        pBtree->insert(array[i]);
     return 0;
 }
