@@ -142,16 +142,15 @@ Brch<T, N> *Brch<T, N>::splice()
     Brch<T, N> *new_node = new Brch<T, N>;
     int i = Node<T, N>::Min+1;
     int j = 0;
-    new_node->sub[j] = sub[i];
-    i++;
-    j++;
-    while (i <= Max)
+    while (i <= Max+1)
     {
         new_node->data[j] = Node<T, N>::data[i];
         new_node->sub[j]  = sub[i];
         ++i;
         ++j;
     }
+    new_node->num = Node<T, N>::Min;
+    Node<T, N>::num = Max-Node<T, N>::Min;
     //new root
     if (Node<T, N>::parent == NULL)
     {
@@ -194,7 +193,10 @@ int main()
     char array[] = "qwertyuiopasdfghjkl123zxcvbnm6789450";
     BTree<char, 5> *ptree = new BTree<char, 5>;
     for (int i=0; i<sizeof(array)/sizeof(array[0]); ++i)
+    {
         ptree->insert(array[i], 0x0);
-    ptree->show();
+        ptree->show();
+        std::cout << std::endl;
+    }
     return 0;
 }

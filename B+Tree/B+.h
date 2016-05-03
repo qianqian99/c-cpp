@@ -59,7 +59,7 @@ class Brch : public Node<T, N>
         Brch(Type type=BRCH, Brch *pa=NULL, int num=0)
             :Max(N-1), Node<T, N>(type, num, pa)
         {
-            memset(sub, 0, sizeof(type, num, pa));
+            memset(sub, 0, sizeof(void *)*(N+1));
         }
         Type get_node_type() const{return BRCH;}
         void insert(const T&key, Node<T, N> *right);
